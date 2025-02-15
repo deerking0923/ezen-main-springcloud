@@ -1,0 +1,24 @@
+server:
+  port: 8888
+
+spring:
+#  profiles:
+#    active: native
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:///C://work//git-local-repo
+        git: #default
+          uri: https://github.com/deerking0923/spring-cloud-config.git
+          default-label: main
+          username: deerking0923
+          password: ${TOKEN}
+        bootstrap: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, busrefresh, refresh, metrics
