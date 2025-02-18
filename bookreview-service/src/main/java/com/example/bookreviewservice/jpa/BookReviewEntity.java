@@ -19,7 +19,7 @@ public class BookReviewEntity {
     private String isbn;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @CreationTimestamp
     @Column(nullable = false)

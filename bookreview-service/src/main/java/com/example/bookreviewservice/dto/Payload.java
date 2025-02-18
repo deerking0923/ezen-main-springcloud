@@ -9,6 +9,6 @@ import lombok.Data;
 public class Payload {
     private Long review_id;
     private String isbn;
-    private Long user_id;
+    private String user_id;
     private String content;
 }

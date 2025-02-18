@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Service
 @Slf4j
@@ -18,7 +19,8 @@ public class KafkaProducer {
     }
 
     public BookReviewDto send(String topic, BookReviewDto dto) {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper()
+                                .registerModule(new JavaTimeModule()); 
         String jsonInString = "";
         try {
             jsonInString = mapper.writeValueAsString(dto);

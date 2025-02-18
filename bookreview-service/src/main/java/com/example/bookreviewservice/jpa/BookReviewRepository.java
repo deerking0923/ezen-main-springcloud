@@ -10,5 +10,5 @@ public interface BookReviewRepository extends CrudRepository<BookReviewEntity, L
     List<BookReviewEntity> findByIsbn(String isbn);
 
     // 특정 사용자(userId)의 리뷰 목록
-    List<BookReviewEntity> findByUserId(Long userId);
+    List<BookReviewEntity> findByUserId(String userId);
 }

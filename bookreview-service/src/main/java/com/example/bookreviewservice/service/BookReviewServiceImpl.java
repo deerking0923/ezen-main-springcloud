@@ -77,7 +77,7 @@ public class BookReviewServiceImpl implements BookReviewService {
     }
 
     @Override
-    public boolean deleteReview(Long reviewId, Long userId) {
+    public boolean deleteReview(Long reviewId, String userId) {
         Optional<BookReviewEntity> optionalEntity = bookReviewRepository.findById(reviewId);
         if (optionalEntity.isEmpty()) return false;
 

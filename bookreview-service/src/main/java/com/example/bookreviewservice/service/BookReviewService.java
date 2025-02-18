@@ -8,7 +8,7 @@ import java.util.List;
 public interface BookReviewService {
     BookReviewDto createReview(BookReviewDto reviewDto);
     BookReviewDto updateReview(Long reviewId, BookReviewDto reviewDto);
-    boolean deleteReview(Long reviewId, Long userId);
+    boolean deleteReview(Long reviewId, String userId);
     List<BookReviewDto> getReviewsByIsbn(String isbn);
     BookReviewDto getReview(Long reviewId);
 }

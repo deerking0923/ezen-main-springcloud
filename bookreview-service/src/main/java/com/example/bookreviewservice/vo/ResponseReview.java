@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class ResponseReview {
     private Long id;
     private String isbn;
-    private Long userId;
+    private String userId;
     private LocalDate createDate;
     private String content;
 }
