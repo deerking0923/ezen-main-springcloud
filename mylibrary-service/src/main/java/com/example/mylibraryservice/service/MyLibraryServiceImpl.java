@@ -6,8 +6,6 @@ import com.example.mylibraryservice.jpa.BookQuoteEntity;
 import com.example.mylibraryservice.jpa.BookQuoteRepository;
 import com.example.mylibraryservice.jpa.UserBookEntity;
 import com.example.mylibraryservice.jpa.UserBookRepository;
-import com.example.mylibraryservice.messagequeue.KafkaProducer;
-import com.example.mylibraryservice.messagequeue.MyLibraryProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -23,18 +21,12 @@ public class MyLibraryServiceImpl implements MyLibraryService {
 
     private final UserBookRepository userBookRepository;
     private final BookQuoteRepository bookQuoteRepository;
-    private final KafkaProducer kafkaProducer;
-    private final MyLibraryProducer myLibraryProducer;
 
     public MyLibraryServiceImpl(
             UserBookRepository userBookRepository,
-            BookQuoteRepository bookQuoteRepository,
-            KafkaProducer kafkaProducer,
-            MyLibraryProducer myLibraryProducer) {
+            BookQuoteRepository bookQuoteRepository) {
         this.userBookRepository = userBookRepository;
         this.bookQuoteRepository = bookQuoteRepository;
-        this.kafkaProducer = kafkaProducer;
-        this.myLibraryProducer = myLibraryProducer;
     }
 
     @Override
@@ -63,10 +55,6 @@ public class MyLibraryServiceImpl implements MyLibraryService {
 
         // 3) DB 저장
         userBookRepository.save(userBookEntity);
-
-        // 4) Kafka 메시지 발행 (필요 시)
-        kafkaProducer.send("example-library-topic", userBookDto);
-        myLibraryProducer.send("example-library-topic-struct", userBookDto);
 
         // 5) 저장된 UserBookEntity를 UserBookDto로 변환하여 반환
         return mapper.map(userBookEntity, UserBookDto.class);
