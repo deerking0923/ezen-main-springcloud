@@ -80,6 +80,10 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/order-service/**
+        - id: mylibrary-service
+          uri: lb://MYLIBRARY-SERVICE
+          predicates:
+            - Path=/mylibrary-service/**
         - id: first-service
           uri: lb://MY-FIRST-SERVICE
           predicates:

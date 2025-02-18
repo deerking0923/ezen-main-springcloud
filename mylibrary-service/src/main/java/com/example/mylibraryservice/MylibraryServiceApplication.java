@@ -1,4 +1,4 @@
-package com.example.mylibrary_service;
+package com.example.mylibraryservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

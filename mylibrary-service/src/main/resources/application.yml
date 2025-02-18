@@ -1,3 +1,53 @@
+server:
+  port: 30000
+
 spring:
   application:
     name: mylibrary-service
+
+  datasource:
+    url: ${DB_URL}                   # 예: jdbc:mysql://158.180.95.237:3306/ezen_main?useSSL=false&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        "[show_sql]": true
+        "[format_sql]": true
+        jdbc:
+          time_zone: Asia/Seoul
+    hibernate:
+      ddl-auto: update
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka
+
+logging:
+  level:
+    com.example.orderservice: DEBUG
+  pattern:
+    correlation: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      consume: B3
+      produce: B3
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health, httptrace, info, metrics, prometheus
+

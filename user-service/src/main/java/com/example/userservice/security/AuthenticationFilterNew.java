@@ -74,7 +74,7 @@ public class AuthenticationFilterNew  extends UsernamePasswordAuthenticationFilt
                 .issuedAt(Date.from(now))
                 .signWith(secretKey)
                 .compact();
-
+        
         res.addHeader("token", token);
         res.addHeader("userId", userDetails.getUserId());
     }
