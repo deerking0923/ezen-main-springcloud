@@ -12,15 +12,19 @@ public class GatewayCorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        
-        config.addAllowedOrigin("http://localhost:3000");  // 클라이언트 주소 지정
+
+        config.addAllowedOrigin("http://localhost:3000"); // 클라이언트 주소 지정
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
-        
+
+        // 여기 추가!
+        config.addExposedHeader("token");
+        config.addExposedHeader("userId");
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        
+
         return new CorsWebFilter(source);
     }
 }
