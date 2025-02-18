@@ -84,6 +84,10 @@ spring:
           uri: lb://MYLIBRARY-SERVICE
           predicates:
             - Path=/mylibrary-service/**
+        - id: bookreview-service
+          uri: lb://BOOKREVIEW-SERVICE
+          predicates:
+            - Path=/bookreview-service/**
         - id: first-service
           uri: lb://MY-FIRST-SERVICE
           predicates:

@@ -1,13 +1,13 @@
-package com.example.booksearch_service;
+package com.example.bookreviewservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class BooksearchServiceApplication {
+public class BookreviewServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BooksearchServiceApplication.class, args);
+		SpringApplication.run(BookreviewServiceApplication.class, args);
 	}
 
 }
