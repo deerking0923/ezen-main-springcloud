@@ -97,4 +97,31 @@ public class MyLibraryController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제할 책 기록이 없습니다.");
         }
     }
+
+
+    @PutMapping("/{userId}/book/{bookId}")
+    public ResponseEntity<?> updateUserBook(
+            @PathVariable("userId") String userId,
+            @PathVariable("bookId") Long bookId,
+            @RequestBody RequestUserBook requestBook
+    ) {
+        log.info("PUT update book for userId: {}, bookId: {}", userId, bookId);
+
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+        // RequestUserBook을 DTO로 변환
+        UserBookDto userBookDto = mapper.map(requestBook, UserBookDto.class);
+        userBookDto.setUserId(userId);
+        userBookDto.setId(bookId);
+
+        UserBookDto updatedDto = myLibraryService.updateUserBook(userBookDto);
+        if (updatedDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // VO로 변환 후 응답
+        ResponseUserBook response = mapper.map(updatedDto, ResponseUserBook.class);
+        return ResponseEntity.ok(response);
+    }
 }

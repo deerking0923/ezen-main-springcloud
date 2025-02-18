@@ -9,4 +9,6 @@ public interface MyLibraryService {
     List<UserBookDto> getUserBooks(String userId);
     UserBookDto getUserBook(String userId, Long bookId);
     boolean deleteUserBook(String userId, Long bookId);
+    UserBookDto updateUserBook(UserBookDto userBookDto);
+
 }
