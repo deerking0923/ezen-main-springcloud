@@ -1,7 +1,9 @@
-// src/main/java/com/example/mylibraryservice/service/MyLibraryServiceImpl.java
 package com.example.mylibraryservice.service;
 
+import com.example.mylibraryservice.dto.BookQuoteDto;
 import com.example.mylibraryservice.dto.UserBookDto;
+import com.example.mylibraryservice.jpa.BookQuoteEntity;
+import com.example.mylibraryservice.jpa.BookQuoteRepository;
 import com.example.mylibraryservice.jpa.UserBookEntity;
 import com.example.mylibraryservice.jpa.UserBookRepository;
 import com.example.mylibraryservice.messagequeue.KafkaProducer;
@@ -19,46 +21,87 @@ import java.util.List;
 public class MyLibraryServiceImpl implements MyLibraryService {
 
     private final UserBookRepository userBookRepository;
+    private final BookQuoteRepository bookQuoteRepository;
     private final KafkaProducer kafkaProducer;
     private final MyLibraryProducer myLibraryProducer;
 
     public MyLibraryServiceImpl(
             UserBookRepository userBookRepository,
+            BookQuoteRepository bookQuoteRepository,
             KafkaProducer kafkaProducer,
             MyLibraryProducer myLibraryProducer
     ) {
         this.userBookRepository = userBookRepository;
+        this.bookQuoteRepository = bookQuoteRepository;
         this.kafkaProducer = kafkaProducer;
         this.myLibraryProducer = myLibraryProducer;
     }
 
     @Override
     public UserBookDto createUserBook(UserBookDto userBookDto) {
-        // DB 저장
+        // 1) ModelMapper 설정
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
+        // 2) UserBookEntity를 만든다
         UserBookEntity userBookEntity = mapper.map(userBookDto, UserBookEntity.class);
+
+        // 만약 quotes가 있다면, BookQuoteEntity를 생성하면서 userBook을 설정
+        if (userBookDto.getQuotes() != null && !userBookDto.getQuotes().isEmpty()) {
+            List<BookQuoteEntity> quoteEntities = new ArrayList<>();
+            for (BookQuoteDto quoteDto : userBookDto.getQuotes()) {
+                BookQuoteEntity quoteEntity = new BookQuoteEntity();
+                quoteEntity.setPageNumber(quoteDto.getPageNumber());
+                quoteEntity.setQuoteText(quoteDto.getQuoteText());
+                // userBook 설정
+                quoteEntity.setUserBook(userBookEntity);
+                quoteEntities.add(quoteEntity);
+            }
+            // userBookEntity에 연결 (CascadeType.ALL로 자식 자동 저장)
+            userBookEntity.setQuotes(quoteEntities);
+        }
+
+        // 3) DB 저장
         userBookRepository.save(userBookEntity);
 
-        // Kafka 메시지 발행 (필요 시)
+        // 4) Kafka 메시지 발행 (필요 시)
         kafkaProducer.send("example-library-topic", userBookDto);
         myLibraryProducer.send("example-library-topic-struct", userBookDto);
 
+        // 5) 저장된 UserBookEntity를 UserBookDto로 변환하여 반환
         return mapper.map(userBookEntity, UserBookDto.class);
     }
 
     @Override
     public List<UserBookDto> getUserBooks(String userId) {
-        List<UserBookEntity> userBookEntities = userBookRepository.findByUserId(userId);
+        List<UserBookEntity> entities = userBookRepository.findByUserId(userId);
         List<UserBookDto> result = new ArrayList<>();
 
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
-        userBookEntities.forEach(entity -> {
-            result.add(mapper.map(entity, UserBookDto.class));
-        });
+        for (UserBookEntity entity : entities) {
+            // 1) UserBookEntity -> UserBookDto 매핑
+            UserBookDto dto = mapper.map(entity, UserBookDto.class);
+
+            // 2) BookQuoteEntity 목록 조회 (자식들)
+            List<BookQuoteEntity> quoteEntities = bookQuoteRepository.findByUserBook_Id(entity.getId());
+            List<BookQuoteDto> quoteDtos = new ArrayList<>();
+
+            // 3) BookQuoteEntity -> BookQuoteDto 매핑
+            for (BookQuoteEntity qe : quoteEntities) {
+                BookQuoteDto quoteDto = new BookQuoteDto();
+                quoteDto.setId(qe.getId());
+                quoteDto.setPageNumber(qe.getPageNumber());
+                quoteDto.setQuoteText(qe.getQuoteText());
+                quoteDtos.add(quoteDto);
+            }
+
+            // 4) UserBookDto에 quotes 리스트로 설정
+            dto.setQuotes(quoteDtos);
+
+            result.add(dto);
+        }
 
         return result;
     }

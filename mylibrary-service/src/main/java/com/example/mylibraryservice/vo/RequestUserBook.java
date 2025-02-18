@@ -1,7 +1,8 @@
-// src/main/java/com/example/mylibraryservice/vo/RequestUserBook.java
 package com.example.mylibraryservice.vo;
 
+import com.example.mylibraryservice.dto.BookQuoteDto;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class RequestUserBook {
@@ -13,7 +14,7 @@ public class RequestUserBook {
     private String description;
     private String thumbnail;
     private String personalReview;
-    private String quotes;
+    private List<BookQuoteDto> quotes;
     private String startDate;
     private String endDate;
 }
