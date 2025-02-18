@@ -57,4 +57,29 @@ public class MyLibraryController {
         ResponseUserBook response = mapper.map(createdDto, ResponseUserBook.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+        /**
+     * GET /mylibrary-service/{userId}/book/{bookId}
+     * 특정 유저가 기록한 특정 책의 상세 정보 조회
+     */
+    @GetMapping("/{userId}/book/{bookId}")
+    public ResponseEntity<?> getBookDetail(
+        @PathVariable("userId") String userId,
+        @PathVariable("bookId") Long bookId
+    ) {
+        log.info("GET book detail - userId: {}, bookId: {}", userId, bookId);
+
+        // 서비스 호출
+        UserBookDto userBookDto = myLibraryService.getUserBook(userId, bookId);
+        if (userBookDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // DTO -> VO 변환
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        ResponseUserBook response = mapper.map(userBookDto, ResponseUserBook.class);
+
+        return ResponseEntity.ok(response);
+    }
 }

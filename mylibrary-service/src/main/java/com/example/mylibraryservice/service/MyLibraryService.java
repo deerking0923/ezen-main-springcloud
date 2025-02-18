@@ -7,4 +7,6 @@ import java.util.List;
 public interface MyLibraryService {
     UserBookDto createUserBook(UserBookDto userBookDto);
     List<UserBookDto> getUserBooks(String userId);
+    UserBookDto getUserBook(String userId, Long bookId);
+
 }

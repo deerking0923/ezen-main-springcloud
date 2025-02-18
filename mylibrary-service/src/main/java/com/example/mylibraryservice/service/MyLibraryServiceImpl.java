@@ -105,4 +105,35 @@ public class MyLibraryServiceImpl implements MyLibraryService {
 
         return result;
     }
+
+    @Override
+    public UserBookDto getUserBook(String userId, Long bookId) {
+        // 1) userId와 bookId에 맞는 userBook을 찾는다.
+        UserBookEntity userBookEntity = userBookRepository.findById(bookId)
+                .orElse(null);
+        // 예외 케이스: 책이 존재하지 않거나 userId가 다르면 null
+        if (userBookEntity == null || !userBookEntity.getUserId().equals(userId)) {
+            return null;
+        }
+
+        // 2) DTO 변환
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        UserBookDto userBookDto = mapper.map(userBookEntity, UserBookDto.class);
+
+        // 3) 기록 문장(book quotes)도 함께 조회
+        List<BookQuoteEntity> quoteEntities = bookQuoteRepository.findByUserBook_Id(bookId);
+        List<BookQuoteDto> quoteDtos = new ArrayList<>();
+        for (BookQuoteEntity qe : quoteEntities) {
+            BookQuoteDto quoteDto = new BookQuoteDto();
+            quoteDto.setId(qe.getId());
+            quoteDto.setPageNumber(qe.getPageNumber());
+            quoteDto.setQuoteText(qe.getQuoteText());
+            quoteDtos.add(quoteDto);
+        }
+        userBookDto.setQuotes(quoteDtos);
+
+        // 4) 최종 DTO 반환
+        return userBookDto;
+    }
 }
