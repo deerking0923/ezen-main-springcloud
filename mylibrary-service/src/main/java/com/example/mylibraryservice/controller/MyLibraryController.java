@@ -82,4 +82,19 @@ public class MyLibraryController {
 
         return ResponseEntity.ok(response);
     }
+
+
+    @DeleteMapping("/{userId}/book/{bookId}")
+    public ResponseEntity<?> deleteUserBook(
+            @PathVariable("userId") String userId,
+            @PathVariable("bookId") Long bookId
+    ) {
+        log.info("DELETE book record for userId: {}, bookId: {}", userId, bookId);
+        boolean deleted = myLibraryService.deleteUserBook(userId, bookId);
+        if (deleted) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제할 책 기록이 없습니다.");
+        }
+    }
 }

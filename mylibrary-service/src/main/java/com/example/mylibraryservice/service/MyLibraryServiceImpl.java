@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @Slf4j
@@ -135,5 +137,20 @@ public class MyLibraryServiceImpl implements MyLibraryService {
 
         // 4) 최종 DTO 반환
         return userBookDto;
+    }
+
+    @Override
+    public boolean deleteUserBook(String userId, Long bookId) {
+        Optional<UserBookEntity> optionalEntity = userBookRepository.findById(bookId);
+        if (optionalEntity.isEmpty() || !optionalEntity.get().getUserId().equals(userId)) {
+            return false;
+        }
+        try {
+            userBookRepository.delete(optionalEntity.get());
+            return true;
+        } catch (Exception e) {
+            log.error("Error deleting user book", e);
+            return false;
+        }
     }
 }
