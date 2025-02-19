@@ -8,6 +8,6 @@ import lombok.Data;
 public class Payload {
     private Long comment_id;  // DB id
     private Long post_id;
-    private Long user_id;
+    private String user_id;
     private String content;
 }

@@ -26,7 +26,7 @@ public class CommentProducer {
         List<Field> fields = Arrays.asList(
                 new Field("int64", true, "comment_id"),
                 new Field("int64", true, "post_id"),
-                new Field("int64", true, "user_id"),
+                new Field("String", true, "user_id"),
                 new Field("string", true, "content")
         );
 
