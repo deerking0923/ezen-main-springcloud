@@ -23,6 +23,7 @@
 		<module>service-discovery</module>
 		<module>apigateway-service</module>
 		<module>bookreview-service</module>
+		<module>community-service</module>
 	</modules>
 
 
