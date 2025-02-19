@@ -14,11 +14,14 @@ public class CommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // userId: user-service에서 관리하는 사용자 식별자
     @Column(nullable = false)
-    private Long postId;
+    private String userId;
 
-    @Column(nullable = false)
-    private Long userId;
+    // 게시글과 다대일 관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private PostEntity post;
 
     @CreationTimestamp
     @Column(nullable = false)

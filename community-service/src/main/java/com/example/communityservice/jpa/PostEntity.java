@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Entity
@@ -14,8 +15,9 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // userId: user-service에서 관리되는 사용자 식별자
     @Column(nullable = false)
-    private Long userId; // user-service에서 관리되는 user_id
+    private String userId;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -26,4 +28,8 @@ public class PostEntity {
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDate createDate;
+
+    // 1대 다 관계 (optional): 게시글 - 댓글
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CommentEntity> comments;
 }

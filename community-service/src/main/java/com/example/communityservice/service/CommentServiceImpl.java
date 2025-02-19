@@ -3,116 +3,84 @@ package com.example.communityservice.service;
 import com.example.communityservice.dto.CommentDto;
 import com.example.communityservice.jpa.CommentEntity;
 import com.example.communityservice.jpa.CommentRepository;
-import com.example.communityservice.messagequeue.CommentProducer;
-import com.example.communityservice.messagequeue.KafkaProducer;
+import com.example.communityservice.jpa.PostEntity;
+import com.example.communityservice.jpa.PostRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class CommentServiceImpl implements CommentService {
-
     private final CommentRepository commentRepository;
-    private final KafkaProducer kafkaProducer;       // 단순 직렬화 Producer
-    private final CommentProducer commentProducer;   // Struct 형식 Producer
+    private final PostRepository postRepository;
+    private final ModelMapper mapper = new ModelMapper();
 
-    public CommentServiceImpl(CommentRepository commentRepository,
-                              KafkaProducer kafkaProducer,
-                              CommentProducer commentProducer) {
+    public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
         this.commentRepository = commentRepository;
-        this.kafkaProducer = kafkaProducer;
-        this.commentProducer = commentProducer;
+        this.postRepository = postRepository;
     }
 
     @Override
-    public CommentDto createComment(CommentDto commentDto) {
-        // Entity 매핑
-        ModelMapper mapper = new ModelMapper();
-        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+    public CommentDto createComment(CommentDto dto) {
+        // postId 유효성 체크
+        Optional<PostEntity> postOpt = postRepository.findById(dto.getPostId());
+        if (postOpt.isEmpty()) return null;
 
-        CommentEntity entity = mapper.map(commentDto, CommentEntity.class);
+        // 엔티티 매핑
+        CommentEntity entity = mapper.map(dto, CommentEntity.class);
+        entity.setPost(postOpt.get());   // ManyToOne 관계 설정
         commentRepository.save(entity);
 
-        // DB 저장 후 다시 DTO로 매핑
-        CommentDto created = mapper.map(entity, CommentDto.class);
-
-        // Kafka 발행
-        kafkaProducer.send("comment-topic", created);
-        commentProducer.send("comment-topic-struct", created);
-
-        return created;
-    }
-
-    @Override
-    public CommentDto updateComment(Long commentId, CommentDto commentDto) {
-        Optional<CommentEntity> optionalEntity = commentRepository.findById(commentId);
-        if (optionalEntity.isEmpty()) {
-            return null;
-        }
-        CommentEntity entity = optionalEntity.get();
-
-        // 작성자( userId ) 체크 로직 필요 시 추가
-        entity.setContent(commentDto.getContent());
-        commentRepository.save(entity);
-
-        // 수정된 엔티티 -> DTO
-        ModelMapper mapper = new ModelMapper();
-        CommentDto updated = mapper.map(entity, CommentDto.class);
-
-        // Kafka 발행 (수정 이벤트)
-        kafkaProducer.send("comment-topic", updated);
-        commentProducer.send("comment-topic-struct-update", updated);
-
-        return updated;
-    }
-
-    @Override
-    public boolean deleteComment(Long commentId, Long userId) {
-        Optional<CommentEntity> optionalEntity = commentRepository.findById(commentId);
-        if (optionalEntity.isEmpty()) {
-            return false;
-        }
-        CommentEntity entity = optionalEntity.get();
-
-        // userId 체크
-        if (!entity.getUserId().equals(userId)) {
-            return false; // 권한 없음
-        }
-
-        commentRepository.delete(entity);
-
-        // Kafka 발행 (삭제 이벤트)
-        CommentDto dto = new CommentDto();
-        dto.setId(commentId);
-        dto.setUserId(userId);
-
-        kafkaProducer.send("comment-topic-delete", dto);
-        commentProducer.send("comment-topic-struct-delete", dto);
-
-        return true;
-    }
-
-    @Override
-    public List<CommentDto> getCommentsByPostId(Long postId) {
-        ModelMapper mapper = new ModelMapper();
-        List<CommentEntity> entities = commentRepository.findByPostId(postId);
-        return entities.stream()
-                .map(e -> mapper.map(e, CommentDto.class))
-                .collect(Collectors.toList());
+        return mapper.map(entity, CommentDto.class);
     }
 
     @Override
     public CommentDto getComment(Long commentId) {
-        Optional<CommentEntity> optionalEntity = commentRepository.findById(commentId);
-        if (optionalEntity.isEmpty()) {
-            return null;
-        }
-        return new ModelMapper().map(optionalEntity.get(), CommentDto.class);
+        Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
+        return commentOpt.map(c -> mapper.map(c, CommentDto.class)).orElse(null);
+    }
+
+    @Override
+    public List<CommentDto> getAllComments() {
+        List<CommentEntity> comments = (List<CommentEntity>) commentRepository.findAll();
+        return comments.stream().map(c -> mapper.map(c, CommentDto.class)).toList();
+    }
+
+    @Override
+    public List<CommentDto> getCommentsByUserId(String userId) {
+        List<CommentEntity> comments = commentRepository.findByUserId(userId);
+        return comments.stream()
+                .map(c -> {
+                    CommentDto commentDto = mapper.map(c, CommentDto.class);
+                    // postId만 따로 매핑
+                    commentDto.setPostId(c.getPost().getId());
+                    return commentDto;
+                })
+                .toList();
+    }
+
+    @Override
+    public CommentDto updateComment(Long commentId, CommentDto dto) {
+        Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
+        if (commentOpt.isEmpty()) return null;
+
+        CommentEntity entity = commentOpt.get();
+        entity.setContent(dto.getContent()); // 수정
+        commentRepository.save(entity);
+
+        return mapper.map(entity, CommentDto.class);
+    }
+
+    @Override
+    public boolean deleteComment(Long commentId) {
+        Optional<CommentEntity> commentOpt = commentRepository.findById(commentId);
+        if (commentOpt.isEmpty()) return false;
+
+        commentRepository.delete(commentOpt.get());
+        return true;
     }
 }

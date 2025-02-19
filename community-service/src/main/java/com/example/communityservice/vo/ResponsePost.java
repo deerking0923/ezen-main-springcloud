@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Data
 public class ResponsePost {
     private Long id;
-    private Long userId;
+    private String userId;
     private String title;
     private String content;
     private LocalDate createDate;

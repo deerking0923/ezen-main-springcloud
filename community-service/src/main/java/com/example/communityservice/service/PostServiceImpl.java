@@ -13,7 +13,6 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class PostServiceImpl implements PostService {
-
     private final PostRepository postRepository;
     private final ModelMapper mapper = new ModelMapper();
 
@@ -22,45 +21,49 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto createPost(PostDto postDto) {
-        PostEntity entity = mapper.map(postDto, PostEntity.class);
+    public PostDto createPost(PostDto dto) {
+        PostEntity entity = mapper.map(dto, PostEntity.class);
         postRepository.save(entity);
         return mapper.map(entity, PostDto.class);
     }
 
     @Override
     public PostDto getPost(Long postId) {
-        Optional<PostEntity> optionalEntity = postRepository.findById(postId);
-        if (optionalEntity.isEmpty()) return null;
-        return mapper.map(optionalEntity.get(), PostDto.class);
+        Optional<PostEntity> optional = postRepository.findById(postId);
+        return optional.map(post -> mapper.map(post, PostDto.class)).orElse(null);
     }
 
     @Override
     public List<PostDto> getAllPosts() {
-        List<PostEntity> entities = (List<PostEntity>) postRepository.findAll();
-        return entities.stream()
-                .map(e -> mapper.map(e, PostDto.class))
-                .toList();
+        List<PostEntity> posts = (List<PostEntity>) postRepository.findAll();
+        return posts.stream().map(p -> mapper.map(p, PostDto.class)).toList();
     }
 
     @Override
-    public PostDto updatePost(Long postId, PostDto postDto) {
-        Optional<PostEntity> optionalEntity = postRepository.findById(postId);
-        if (optionalEntity.isEmpty()) {
-            return null;
-        }
-        PostEntity entity = optionalEntity.get();
-        entity.setTitle(postDto.getTitle());
-        entity.setContent(postDto.getContent());
+    public List<PostDto> getPostsByUserId(String userId) {
+        List<PostEntity> posts = postRepository.findByUserId(userId);
+        return posts.stream().map(p -> mapper.map(p, PostDto.class)).toList();
+    }
+
+    @Override
+    public PostDto updatePost(Long postId, PostDto dto) {
+        Optional<PostEntity> optional = postRepository.findById(postId);
+        if (optional.isEmpty()) return null;
+
+        PostEntity entity = optional.get();
+        entity.setTitle(dto.getTitle());
+        entity.setContent(dto.getContent());
         postRepository.save(entity);
+
         return mapper.map(entity, PostDto.class);
     }
 
     @Override
     public boolean deletePost(Long postId) {
-        Optional<PostEntity> optionalEntity = postRepository.findById(postId);
-        if (optionalEntity.isEmpty()) return false;
-        postRepository.delete(optionalEntity.get());
+        Optional<PostEntity> optional = postRepository.findById(postId);
+        if (optional.isEmpty()) return false;
+
+        postRepository.delete(optional.get());
         return true;
     }
 }
