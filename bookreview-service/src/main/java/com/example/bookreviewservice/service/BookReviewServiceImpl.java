@@ -1,10 +1,6 @@
-// src/main/java/com/example/booksearchservice/service/BookReviewServiceImpl.java
 package com.example.bookreviewservice.service;
 
 import com.example.bookreviewservice.dto.BookReviewDto;
-import com.example.bookreviewservice.dto.KafkaBookReviewDto;
-import com.example.bookreviewservice.dto.Payload;
-import com.example.bookreviewservice.dto.Schema;
 import com.example.bookreviewservice.jpa.BookReviewEntity;
 import com.example.bookreviewservice.jpa.BookReviewRepository;
 import com.example.bookreviewservice.messagequeue.KafkaProducer;
@@ -36,14 +32,12 @@ public class BookReviewServiceImpl implements BookReviewService {
 
     @Override
     public BookReviewDto createReview(BookReviewDto reviewDto) {
-        // 엔티티 매핑
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
         BookReviewEntity entity = mapper.map(reviewDto, BookReviewEntity.class);
         bookReviewRepository.save(entity);
 
-        // DB 저장 후 DTO에 다시 매핑
         BookReviewDto createdReview = mapper.map(entity, BookReviewDto.class);
 
         // Kafka 전송
@@ -60,12 +54,11 @@ public class BookReviewServiceImpl implements BookReviewService {
             return null;
         }
         BookReviewEntity entity = optionalEntity.get();
-        // 작성자(userId)체크 로직이 필요하다면 추가
+        // 작성자(userId) 체크 로직 필요 시 추가
 
         entity.setContent(reviewDto.getContent());
         bookReviewRepository.save(entity);
 
-        // 수정된 DTO 매핑
         ModelMapper mapper = new ModelMapper();
         BookReviewDto updatedReview = mapper.map(entity, BookReviewDto.class);
 
@@ -88,7 +81,6 @@ public class BookReviewServiceImpl implements BookReviewService {
         }
         bookReviewRepository.delete(entity);
 
-        // Kafka 전송 (삭제 이벤트)
         BookReviewDto dto = new BookReviewDto();
         dto.setId(reviewId);
         dto.setUserId(userId);
@@ -117,5 +109,16 @@ public class BookReviewServiceImpl implements BookReviewService {
         }
         ModelMapper mapper = new ModelMapper();
         return mapper.map(entityOpt.get(), BookReviewDto.class);
+    }
+
+    @Override
+    public List<BookReviewDto> getReviewsByUserId(String userId) {
+        List<BookReviewEntity> entities = bookReviewRepository.findByUserId(userId);
+        List<BookReviewDto> dtos = new ArrayList<>();
+        ModelMapper mapper = new ModelMapper();
+        for (BookReviewEntity e : entities) {
+            dtos.add(mapper.map(e, BookReviewDto.class));
+        }
+        return dtos;
     }
 }

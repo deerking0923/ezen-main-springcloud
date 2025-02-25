@@ -3,7 +3,6 @@ package com.example.userservice.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
 import java.util.List;
 
 @Data
@@ -19,6 +18,6 @@ public class ResponseUser {
     @Schema(title = "사용자 User ID", description = "사용자 회원 가입 시 자동으로 부여 되는 사용자 고유한 ID (UUID로 Random하게 생성)")
     private String userId;
 
-    @Schema(title = "주문 상품 목록", description = "사용자가 주문한 주문 내역")
-    private List<ResponseOrder> orders;
+    @Schema(title = "리뷰 목록", description = "사용자의 리뷰 목록")
+    private List<ResponseReview> reviews;
 }

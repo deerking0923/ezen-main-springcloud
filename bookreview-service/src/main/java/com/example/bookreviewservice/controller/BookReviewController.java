@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import com.example.bookreviewservice.messagequeue.KafkaProducer;
 import com.example.bookreviewservice.messagequeue.BookReviewProducer;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,13 +27,13 @@ public class BookReviewController {
     private final Environment env;
     private final BookReviewService bookReviewService;
     private final KafkaProducer kafkaProducer;
-    private final com.example.bookreviewservice.messagequeue.BookReviewProducer bookReviewProducer;
+    private final BookReviewProducer bookReviewProducer;
 
     @Autowired
     public BookReviewController(Environment env, 
                                   BookReviewService bookReviewService,
                                   KafkaProducer kafkaProducer, 
-                                  com.example.bookreviewservice.messagequeue.BookReviewProducer bookReviewProducer) {
+                                  BookReviewProducer bookReviewProducer) {
         this.env = env;
         this.bookReviewService = bookReviewService;
         this.kafkaProducer = kafkaProducer;
@@ -124,5 +123,17 @@ public class BookReviewController {
         ModelMapper mapper = new ModelMapper();
         ResponseReview res = mapper.map(dto, ResponseReview.class);
         return ResponseEntity.ok(res);
+    }
+    
+    // 6) 사용자별 리뷰 목록 조회: GET /bookreview-service/{userId}/reviews
+    @GetMapping("/{userId}/reviews")
+    public ResponseEntity<List<ResponseReview>> getReviewsByUser(@PathVariable("userId") String userId) {
+        log.info("Fetching reviews for userId: {}", userId);
+        List<BookReviewDto> dtos = bookReviewService.getReviewsByUserId(userId);
+        ModelMapper mapper = new ModelMapper();
+        List<ResponseReview> reviews = dtos.stream()
+                .map(dto -> mapper.map(dto, ResponseReview.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(reviews);
     }
 }
