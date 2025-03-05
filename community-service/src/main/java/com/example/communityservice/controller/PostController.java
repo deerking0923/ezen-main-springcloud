@@ -6,9 +6,11 @@ import com.example.communityservice.vo.RequestPost;
 import com.example.communityservice.vo.ResponsePost;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/community-service/posts")
@@ -22,48 +24,70 @@ public class PostController {
         this.postService = postService;
     }
 
-    // 게시글 생성
-    @PostMapping
-    public ResponsePost createPost(@RequestBody RequestPost req) {
-        PostDto postDto = mapper.map(req, PostDto.class);
-        PostDto created = postService.createPost(postDto);
-        return mapper.map(created, ResponsePost.class);
+    // READ: 전체 게시글 조회 (모두 접근 가능)
+    @GetMapping
+    public List<ResponsePost> getAllPosts() {
+        List<PostDto> dtos = postService.getAllPosts();
+        return dtos.stream().map(dto -> mapper.map(dto, ResponsePost.class)).collect(Collectors.toList());
     }
 
-    // 게시글 단건 조회
+    // READ: 게시글 단건 조회 (모두 접근 가능)
     @GetMapping("/{postId}")
     public ResponsePost getPost(@PathVariable Long postId) {
         PostDto dto = postService.getPost(postId);
-        if (dto == null) return null;
+        if (dto == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다.");
         return mapper.map(dto, ResponsePost.class);
     }
 
-    // 특정 유저의 게시글 목록 조회
+    // READ: 특정 유저의 게시글 조회 (모두 접근 가능)
     @GetMapping("/user/{userId}")
     public List<ResponsePost> getPostsByUserId(@PathVariable String userId) {
-        List<PostDto> postDtos = postService.getPostsByUserId(userId);
-        return postDtos.stream().map(p -> mapper.map(p, ResponsePost.class)).toList();
+        List<PostDto> dtos = postService.getPostsByUserId(userId);
+        return dtos.stream().map(dto -> mapper.map(dto, ResponsePost.class)).collect(Collectors.toList());
     }
 
-    // 전체 게시글 목록
-    @GetMapping
-    public List<ResponsePost> getAllPosts() {
-        List<PostDto> postDtos = postService.getAllPosts();
-        return postDtos.stream().map(p -> mapper.map(p, ResponsePost.class)).toList();
-    }
-
-    // 게시글 수정
-    @PutMapping("/{postId}")
-    public ResponsePost updatePost(@PathVariable Long postId, @RequestBody RequestPost req) {
+    // WRITE: 게시글 생성 (로그인 사용자만)
+    // POST /community-service/posts/{userId}
+    @PostMapping("/{userId}")
+    public ResponsePost createPost(@PathVariable String userId, @RequestBody RequestPost req) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 작성 권한이 없습니다.");
         PostDto dto = mapper.map(req, PostDto.class);
+        dto.setUserId(userId);
+        PostDto created = postService.createPost(dto);
+        return mapper.map(created, ResponsePost.class);
+    }
+
+    // WRITE: 게시글 수정 (로그인 사용자만)
+    // PUT /community-service/posts/{userId}/{postId}
+    @PutMapping("/{userId}/{postId}")
+    public ResponsePost updatePost(@PathVariable String userId, @PathVariable Long postId,
+            @RequestBody RequestPost req) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 수정 권한이 없습니다.");
+        PostDto dto = mapper.map(req, PostDto.class);
+        dto.setUserId(userId);
         PostDto updated = postService.updatePost(postId, dto);
-        if (updated == null) return null;
+        if (updated == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없거나 권한이 없습니다.");
         return mapper.map(updated, ResponsePost.class);
     }
 
-    // 게시글 삭제
-    @DeleteMapping("/{postId}")
-    public boolean deletePost(@PathVariable Long postId) {
-        return postService.deletePost(postId);
+    // WRITE: 게시글 삭제 (로그인 사용자만)
+    // DELETE /community-service/posts/{userId}/{postId}
+    @DeleteMapping("/{userId}/{postId}")
+    public boolean deletePost(@PathVariable String userId, @PathVariable Long postId) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "게시글 삭제 권한이 없습니다.");
+        boolean result = postService.deletePost(postId);
+        if (!result)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다.");
+        return true;
+    }
+
+    // 임시 보안 체크 메서드
+    private boolean isOwner(String userIdFromPath) {
+        return true;
     }
 }

@@ -6,9 +6,11 @@ import com.example.communityservice.vo.RequestComment;
 import com.example.communityservice.vo.ResponseComment;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/community-service/comments")
@@ -22,49 +24,82 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    // 댓글 생성
-    @PostMapping
-    public ResponseComment createComment(@RequestBody RequestComment req) {
-        CommentDto dto = mapper.map(req, CommentDto.class);
-        CommentDto created = commentService.createComment(dto);
-        if (created == null) return null;  // postId가 유효하지 않을 경우 등
-        return mapper.map(created, ResponseComment.class);
-    }
-
-    // 댓글 단건 조회
-    @GetMapping("/{commentId}")
-    public ResponseComment getComment(@PathVariable Long commentId) {
-        CommentDto dto = commentService.getComment(commentId);
-        if (dto == null) return null;
-        return mapper.map(dto, ResponseComment.class);
-    }
-
-    // 특정 유저가 작성한 댓글 목록
-    @GetMapping("/user/{userId}")
-    public List<ResponseComment> getCommentsByUserId(@PathVariable String userId) {
-        List<CommentDto> dtos = commentService.getCommentsByUserId(userId);
-        return dtos.stream().map(c -> mapper.map(c, ResponseComment.class)).toList();
-    }
-
-    // 전체 댓글 목록
+    // READ: 전체 댓글 조회 (모두 접근 가능)
     @GetMapping
     public List<ResponseComment> getAllComments() {
         List<CommentDto> dtos = commentService.getAllComments();
-        return dtos.stream().map(c -> mapper.map(c, ResponseComment.class)).toList();
+        return dtos.stream()
+                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .collect(Collectors.toList());
     }
 
-    // 댓글 수정
-    @PutMapping("/{commentId}")
-    public ResponseComment updateComment(@PathVariable Long commentId, @RequestBody RequestComment req) {
+    // READ: 댓글 단건 조회 (모두 접근 가능)
+    @GetMapping("/{commentId}")
+    public ResponseComment getComment(@PathVariable Long commentId) {
+        CommentDto dto = commentService.getComment(commentId);
+        if (dto == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
+        return mapper.map(dto, ResponseComment.class);
+    }
+
+    // READ: 특정 유저가 작성한 댓글 조회 (모두 접근 가능)
+    @GetMapping("/user/{userId}")
+    public List<ResponseComment> getCommentsByUserId(@PathVariable String userId) {
+        List<CommentDto> dtos = commentService.getCommentsByUserId(userId);
+        return dtos.stream()
+                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .collect(Collectors.toList());
+    }
+
+    // READ: 특정 게시글의 댓글 조회 (모두 접근 가능)
+    @GetMapping("/post/{postId}")
+    public List<ResponseComment> getCommentsByPostId(@PathVariable Long postId) {
+        List<CommentDto> dtos = commentService.getCommentsByPostId(postId);
+        return dtos.stream()
+                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .collect(Collectors.toList());
+    }
+
+    // WRITE: 댓글 생성 (로그인 사용자만)
+    @PostMapping("/{userId}")
+    public ResponseComment createComment(@PathVariable String userId, @RequestBody RequestComment req) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성 권한이 없습니다.");
         CommentDto dto = mapper.map(req, CommentDto.class);
+        dto.setUserId(userId);
+        CommentDto created = commentService.createComment(dto);
+        if (created == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "댓글 생성 실패");
+        return mapper.map(created, ResponseComment.class);
+    }
+
+    // WRITE: 댓글 수정 (로그인 사용자만)
+    @PutMapping("/{userId}/{commentId}")
+    public ResponseComment updateComment(@PathVariable String userId, @PathVariable Long commentId,
+            @RequestBody RequestComment req) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
+        CommentDto dto = mapper.map(req, CommentDto.class);
+        dto.setUserId(userId);
         CommentDto updated = commentService.updateComment(commentId, dto);
-        if (updated == null) return null;
+        if (updated == null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없거나 권한이 없습니다.");
         return mapper.map(updated, ResponseComment.class);
     }
 
-    // 댓글 삭제
-    @DeleteMapping("/{commentId}")
-    public boolean deleteComment(@PathVariable Long commentId) {
-        return commentService.deleteComment(commentId);
+    // WRITE: 댓글 삭제 (로그인 사용자만)
+    @DeleteMapping("/{userId}/{commentId}")
+    public boolean deleteComment(@PathVariable String userId, @PathVariable Long commentId) {
+        if (!isOwner(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.");
+        boolean result = commentService.deleteComment(commentId);
+        if (!result)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
+        return true;
+    }
+
+    // 임시 보안 체크 메서드
+    private boolean isOwner(String userIdFromPath) {
+        return true;
     }
 }

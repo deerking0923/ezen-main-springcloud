@@ -1,7 +1,6 @@
 package com.example.communityservice.service;
 
 import com.example.communityservice.dto.PostDto;
-
 import java.util.List;
 
 public interface PostService {
