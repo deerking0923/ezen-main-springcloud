@@ -1,8 +1,11 @@
 package com.example.communityservice.service;
 
+import com.example.communityservice.client.UserServiceClient;
 import com.example.communityservice.dto.PostDto;
 import com.example.communityservice.jpa.PostEntity;
 import com.example.communityservice.jpa.PostRepository;
+import com.example.communityservice.vo.ResponseUser;
+
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -15,15 +18,28 @@ import java.util.Optional;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final ModelMapper mapper = new ModelMapper();
+    private final UserServiceClient userServiceClient;
 
-    public PostServiceImpl(PostRepository postRepository) {
+    public PostServiceImpl(PostRepository postRepository, UserServiceClient userServiceClient) {
         this.postRepository = postRepository;
+        this.userServiceClient = userServiceClient;
     }
 
     @Override
     public PostDto createPost(PostDto dto) {
+        try {
+            ResponseUser user = userServiceClient.getUser(dto.getUserId());
+            if (user != null) {
+                dto.setAuthor(user.getName());
+            } else {
+                dto.setAuthor("Unknown");
+            }
+        } catch (Exception e) {
+            log.error("Failed to retrieve user info", e);
+            dto.setAuthor("Unknown");
+        }
         PostEntity entity = mapper.map(dto, PostEntity.class);
-        postRepository.save(entity);
+        entity = postRepository.save(entity);
         return mapper.map(entity, PostDto.class);
     }
 
