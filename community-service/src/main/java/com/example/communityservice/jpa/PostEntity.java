@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -29,8 +30,8 @@ public class PostEntity {
     private String content;
 
     @CreationTimestamp
-    @Column(nullable = false)
-    private LocalDate createDate;
+    @Column(name = "create_date", nullable = false)
+    private LocalDateTime createdAt;
 
     // 조회수, 기본값 0
     @Column(nullable = false)
