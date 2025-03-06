@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.modelmapper.Converter;
+import org.modelmapper.spi.MappingContext;
 
 @RestController
 @RequestMapping("/community-service/comments")
@@ -18,10 +20,11 @@ import java.util.stream.Collectors;
 public class CommentController {
 
     private final CommentService commentService;
-    private final ModelMapper mapper = new ModelMapper();
+    private final ModelMapper mapper;
 
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
+        this.mapper = new ModelMapper();
     }
 
     // READ: 전체 댓글 조회 (모두 접근 가능)
@@ -60,23 +63,40 @@ public class CommentController {
                 .collect(Collectors.toList());
     }
 
-    // WRITE: 댓글 생성 (로그인 사용자만)
     @PostMapping("/{userId}")
     public ResponseComment createComment(@PathVariable String userId, @RequestBody RequestComment req) {
         if (!isOwner(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성 권한이 없습니다.");
-        CommentDto dto = mapper.map(req, CommentDto.class);
-        dto.setUserId(userId);
+    
+        ModelMapper localMapper = new ModelMapper();
+        // AmbiguityIgnored 설정 (선택 사항)
+        localMapper.getConfiguration().setAmbiguityIgnored(true);
+    
+        // 커스텀 Converter: RequestComment에서 CommentDto로 필요한 필드만 매핑
+        Converter<RequestComment, CommentDto> converter = ctx -> {
+            RequestComment source = ctx.getSource();
+            CommentDto dest = new CommentDto();
+            dest.setContent(source.getContent());
+            // 만약 CommentDto에 postId 필드가 있다면
+            dest.setPostId(source.getPostId());
+            // id 필드는 DB에서 생성되므로 매핑하지 않습니다.
+            return dest;
+        };
+        localMapper.addConverter(converter);
+    
+        CommentDto dto = localMapper.map(req, CommentDto.class);
+        dto.setUserId(userId); // URL 경로의 userId 설정
         CommentDto created = commentService.createComment(dto);
         if (created == null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "댓글 생성 실패");
-        return mapper.map(created, ResponseComment.class);
+        return localMapper.map(created, ResponseComment.class);
     }
+    
 
     // WRITE: 댓글 수정 (로그인 사용자만)
     @PutMapping("/{userId}/{commentId}")
     public ResponseComment updateComment(@PathVariable String userId, @PathVariable Long commentId,
-            @RequestBody RequestComment req) {
+                                           @RequestBody RequestComment req) {
         if (!isOwner(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 수정 권한이 없습니다.");
         CommentDto dto = mapper.map(req, CommentDto.class);

@@ -4,6 +4,8 @@ import com.example.communityservice.client.UserServiceClient;
 import com.example.communityservice.dto.PostDto;
 import com.example.communityservice.jpa.PostEntity;
 import com.example.communityservice.jpa.PostRepository;
+import com.example.communityservice.vo.ResponseComment;
+import com.example.communityservice.vo.ResponsePost;
 import com.example.communityservice.vo.ResponseUser;
 
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,7 +49,13 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostDto getPost(Long postId) {
         Optional<PostEntity> optional = postRepository.findById(postId);
-        return optional.map(post -> mapper.map(post, PostDto.class)).orElse(null);
+        if (optional.isEmpty()) return null;
+        PostEntity postEntity = optional.get();
+    
+        // ModelMapper나 수동 매핑을 통해 PostEntity를 PostDto로 변환
+        ModelMapper mapper = new ModelMapper();
+        PostDto postDto = mapper.map(postEntity, PostDto.class);
+        return postDto;
     }
 
     @Override
