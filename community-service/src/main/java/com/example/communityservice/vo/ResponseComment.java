@@ -12,4 +12,5 @@ public class ResponseComment {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createDate;
     private String content;
+    private String userName; // 사용자 이름 추가
 }

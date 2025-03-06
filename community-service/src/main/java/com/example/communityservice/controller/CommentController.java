@@ -4,15 +4,17 @@ import com.example.communityservice.dto.CommentDto;
 import com.example.communityservice.service.CommentService;
 import com.example.communityservice.vo.RequestComment;
 import com.example.communityservice.vo.ResponseComment;
+import com.example.communityservice.vo.ResponseUser;
+import com.example.communityservice.client.UserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.Converter;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.modelmapper.Converter;
-import org.modelmapper.spi.MappingContext;
 
 @RestController
 @RequestMapping("/community-service/comments")
@@ -21,9 +23,11 @@ public class CommentController {
 
     private final CommentService commentService;
     private final ModelMapper mapper;
+    private final UserServiceClient userServiceClient;
 
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, UserServiceClient userServiceClient) {
         this.commentService = commentService;
+        this.userServiceClient = userServiceClient;
         this.mapper = new ModelMapper();
     }
 
@@ -32,7 +36,12 @@ public class CommentController {
     public List<ResponseComment> getAllComments() {
         List<CommentDto> dtos = commentService.getAllComments();
         return dtos.stream()
-                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .map(dto -> {
+                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
+                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
+                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
+                    return rc;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -42,7 +51,10 @@ public class CommentController {
         CommentDto dto = commentService.getComment(commentId);
         if (dto == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
-        return mapper.map(dto, ResponseComment.class);
+        ResponseComment rc = mapper.map(dto, ResponseComment.class);
+        ResponseUser user = userServiceClient.getUser(dto.getUserId());
+        rc.setUserName(user != null ? user.getName() : dto.getUserId());
+        return rc;
     }
 
     // READ: 특정 유저가 작성한 댓글 조회 (모두 접근 가능)
@@ -50,7 +62,12 @@ public class CommentController {
     public List<ResponseComment> getCommentsByUserId(@PathVariable String userId) {
         List<CommentDto> dtos = commentService.getCommentsByUserId(userId);
         return dtos.stream()
-                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .map(dto -> {
+                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
+                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
+                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
+                    return rc;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -59,39 +76,45 @@ public class CommentController {
     public List<ResponseComment> getCommentsByPostId(@PathVariable Long postId) {
         List<CommentDto> dtos = commentService.getCommentsByPostId(postId);
         return dtos.stream()
-                .map(dto -> mapper.map(dto, ResponseComment.class))
+                .map(dto -> {
+                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
+                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
+                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
+                    return rc;
+                })
                 .collect(Collectors.toList());
     }
 
+    // WRITE: 댓글 생성 (로그인 사용자만)
     @PostMapping("/{userId}")
     public ResponseComment createComment(@PathVariable String userId, @RequestBody RequestComment req) {
         if (!isOwner(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성 권한이 없습니다.");
-    
+        
         ModelMapper localMapper = new ModelMapper();
-        // AmbiguityIgnored 설정 (선택 사항)
         localMapper.getConfiguration().setAmbiguityIgnored(true);
-    
-        // 커스텀 Converter: RequestComment에서 CommentDto로 필요한 필드만 매핑
-        Converter<RequestComment, CommentDto> converter = ctx -> {
-            RequestComment source = ctx.getSource();
-            CommentDto dest = new CommentDto();
-            dest.setContent(source.getContent());
-            // 만약 CommentDto에 postId 필드가 있다면
-            dest.setPostId(source.getPostId());
-            // id 필드는 DB에서 생성되므로 매핑하지 않습니다.
-            return dest;
+        Converter<RequestComment, CommentDto> converter = new Converter<RequestComment, CommentDto>() {
+            @Override
+            public CommentDto convert(MappingContext<RequestComment, CommentDto> context) {
+                RequestComment source = context.getSource();
+                CommentDto dest = new CommentDto();
+                dest.setContent(source.getContent());
+                dest.setPostId(source.getPostId());
+                return dest;
+            }
         };
         localMapper.addConverter(converter);
-    
+        
         CommentDto dto = localMapper.map(req, CommentDto.class);
-        dto.setUserId(userId); // URL 경로의 userId 설정
+        dto.setUserId(userId);
         CommentDto created = commentService.createComment(dto);
         if (created == null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "댓글 생성 실패");
-        return localMapper.map(created, ResponseComment.class);
+        ResponseComment rc = localMapper.map(created, ResponseComment.class);
+        ResponseUser user = userServiceClient.getUser(created.getUserId());
+        rc.setUserName(user != null ? user.getName() : created.getUserId());
+        return rc;
     }
-    
 
     // WRITE: 댓글 수정 (로그인 사용자만)
     @PutMapping("/{userId}/{commentId}")
@@ -104,7 +127,10 @@ public class CommentController {
         CommentDto updated = commentService.updateComment(commentId, dto);
         if (updated == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없거나 권한이 없습니다.");
-        return mapper.map(updated, ResponseComment.class);
+        ResponseComment rc = mapper.map(updated, ResponseComment.class);
+        ResponseUser user = userServiceClient.getUser(updated.getUserId());
+        rc.setUserName(user != null ? user.getName() : updated.getUserId());
+        return rc;
     }
 
     // WRITE: 댓글 삭제 (로그인 사용자만)
