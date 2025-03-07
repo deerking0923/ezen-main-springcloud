@@ -15,5 +15,5 @@ public class ResponsePost {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createDate;
     private int viewCount;
-    private List<ResponseComment> comments;
+    // private List<ResponseComment> comments;
 }

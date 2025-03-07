@@ -3,12 +3,14 @@ package com.example.userservice.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
 import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "A domain object for user detail information")
 public class ResponseUser {
+
     @Schema(title = "사용자 Email", description = "사용자 ID로 사용되는 Email 정보로써 로그인 시 사용")
     private String email;
 
@@ -20,4 +22,10 @@ public class ResponseUser {
 
     @Schema(title = "리뷰 목록", description = "사용자의 리뷰 목록")
     private List<ResponseReview> reviews;
+
+    // 새로 추가: 사용자 작성 게시글 목록
+    private List<ResponsePost> posts;
+
+    // 새로 추가: 사용자 작성 댓글 목록
+    private List<ResponseComment> comments;
 }
