@@ -64,7 +64,8 @@ public class CommentServiceImpl implements CommentService {
         if (commentOpt.isEmpty()) return null;
         CommentEntity entity = commentOpt.get();
         entity.setContent(dto.getContent());
-        entity = commentRepository.save(entity);
+        // 필요시 userName 업데이트 (보통은 최초 생성 후 변경하지 않음)
+        commentRepository.save(entity);
         return mapper.map(entity, CommentDto.class);
     }
 

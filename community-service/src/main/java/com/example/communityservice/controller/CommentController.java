@@ -36,12 +36,7 @@ public class CommentController {
     public List<ResponseComment> getAllComments() {
         List<CommentDto> dtos = commentService.getAllComments();
         return dtos.stream()
-                .map(dto -> {
-                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
-                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
-                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
-                    return rc;
-                })
+                .map(dto -> mapper.map(dto, ResponseComment.class))
                 .collect(Collectors.toList());
     }
 
@@ -51,10 +46,7 @@ public class CommentController {
         CommentDto dto = commentService.getComment(commentId);
         if (dto == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다.");
-        ResponseComment rc = mapper.map(dto, ResponseComment.class);
-        ResponseUser user = userServiceClient.getUser(dto.getUserId());
-        rc.setUserName(user != null ? user.getName() : dto.getUserId());
-        return rc;
+        return mapper.map(dto, ResponseComment.class);
     }
 
     // READ: 특정 유저가 작성한 댓글 조회 (모두 접근 가능)
@@ -62,12 +54,7 @@ public class CommentController {
     public List<ResponseComment> getCommentsByUserId(@PathVariable String userId) {
         List<CommentDto> dtos = commentService.getCommentsByUserId(userId);
         return dtos.stream()
-                .map(dto -> {
-                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
-                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
-                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
-                    return rc;
-                })
+                .map(dto -> mapper.map(dto, ResponseComment.class))
                 .collect(Collectors.toList());
     }
 
@@ -76,12 +63,7 @@ public class CommentController {
     public List<ResponseComment> getCommentsByPostId(@PathVariable Long postId) {
         List<CommentDto> dtos = commentService.getCommentsByPostId(postId);
         return dtos.stream()
-                .map(dto -> {
-                    ResponseComment rc = mapper.map(dto, ResponseComment.class);
-                    ResponseUser user = userServiceClient.getUser(dto.getUserId());
-                    rc.setUserName(user != null ? user.getName() : dto.getUserId());
-                    return rc;
-                })
+                .map(dto -> mapper.map(dto, ResponseComment.class))
                 .collect(Collectors.toList());
     }
 
@@ -91,6 +73,10 @@ public class CommentController {
         if (!isOwner(userId))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 작성 권한이 없습니다.");
         
+        // user-service에서 username을 한 번만 조회
+        ResponseUser user = userServiceClient.getUser(userId);
+        String userName = user != null ? user.getName() : userId;
+
         ModelMapper localMapper = new ModelMapper();
         localMapper.getConfiguration().setAmbiguityIgnored(true);
         Converter<RequestComment, CommentDto> converter = new Converter<RequestComment, CommentDto>() {
@@ -107,13 +93,12 @@ public class CommentController {
         
         CommentDto dto = localMapper.map(req, CommentDto.class);
         dto.setUserId(userId);
+        dto.setUserName(userName);
+        
         CommentDto created = commentService.createComment(dto);
         if (created == null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "댓글 생성 실패");
-        ResponseComment rc = localMapper.map(created, ResponseComment.class);
-        ResponseUser user = userServiceClient.getUser(created.getUserId());
-        rc.setUserName(user != null ? user.getName() : created.getUserId());
-        return rc;
+        return localMapper.map(created, ResponseComment.class);
     }
 
     // WRITE: 댓글 수정 (로그인 사용자만)
@@ -127,10 +112,7 @@ public class CommentController {
         CommentDto updated = commentService.updateComment(commentId, dto);
         if (updated == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없거나 권한이 없습니다.");
-        ResponseComment rc = mapper.map(updated, ResponseComment.class);
-        ResponseUser user = userServiceClient.getUser(updated.getUserId());
-        rc.setUserName(user != null ? user.getName() : updated.getUserId());
-        return rc;
+        return mapper.map(updated, ResponseComment.class);
     }
 
     // WRITE: 댓글 삭제 (로그인 사용자만)

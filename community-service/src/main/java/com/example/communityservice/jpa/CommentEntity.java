@@ -14,9 +14,13 @@ public class CommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 댓글 작성자 (user-service에서 관리)
+    // 댓글 작성자 (user-service에서 관리하는 userId)
     @Column(nullable = false)
     private String userId;
+
+    // 댓글 작성자 이름 (추가된 필드)
+    @Column(nullable = false)
+    private String userName;
 
     // 다대일 관계: 댓글은 하나의 게시글에 속함
     @ManyToOne(fetch = FetchType.LAZY)
