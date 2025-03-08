@@ -1,16 +1,15 @@
-package com.example.catalogservice.vo;
+package com.example.recentreviewservice.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseCatalog {
-    private String productId;
-    private String productName;
-    private Integer unitPrice;
-    private Integer stock;
-    private Date createdAt;
+public class ResponseReview {
+    private String isbn;
+    private String userId;
+    private String content;
+    private LocalDate createDate;
 }

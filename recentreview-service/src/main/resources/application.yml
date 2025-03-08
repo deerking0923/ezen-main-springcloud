@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: catalog-service
+    name: recentreview-service
   datasource:
     url: ${DB_URL}                   # 예: jdbc:mysql://158.180.95.237:3306/ezen_main?useSSL=false&serverTimezone=Asia/Seoul
     driver-class-name: com.mysql.cj.jdbc.Driver

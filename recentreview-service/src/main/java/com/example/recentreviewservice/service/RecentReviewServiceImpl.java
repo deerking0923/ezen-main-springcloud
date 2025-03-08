@@ -1,25 +1,19 @@
-package com.example.catalogservice.service;
+package com.example.recentreviewservice.service;
 
-import com.example.catalogservice.jpa.CatalogEntity;
-import com.example.catalogservice.jpa.CatalogRepository;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.recentreviewservice.jpa.RecentReviewEntity;
+import com.example.recentreviewservice.jpa.RecentReviewRepository;
 import org.springframework.stereotype.Service;
 
-@Data
-@Slf4j
 @Service
-public class CatalogServiceImpl implements CatalogService{
-    CatalogRepository catalogRepository;
+public class RecentReviewServiceImpl implements RecentReviewService {
+    private final RecentReviewRepository reviewRepository;
 
-    @Autowired
-    public CatalogServiceImpl(CatalogRepository catalogRepository) {
-        this.catalogRepository = catalogRepository;
+    public RecentReviewServiceImpl(RecentReviewRepository reviewRepository) {
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
-    public Iterable<CatalogEntity> getAllCatalogs() {
-        return catalogRepository.findAll();
+    public Iterable<RecentReviewEntity> getAllReviews() {
+        return reviewRepository.findAll();
     }
 }

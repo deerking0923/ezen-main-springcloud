@@ -64,8 +64,8 @@ public class BookReviewController {
         ResponseReview responseReview = mapper.map(created, ResponseReview.class);
 
         // Kafka 메시지 전송
-        kafkaProducer.send("review-topic", created);
-        bookReviewProducer.send("review-topic-struct", created);
+        // kafkaProducer.send("review-topic", created);
+        // bookReviewProducer.send("review-topic-struct", created);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseReview);
     }

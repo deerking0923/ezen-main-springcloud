@@ -64,10 +64,10 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             #- AuthorizationHeaderFilter
-        - id: catalog-service
-          uri: lb://CATALOG-SERVICE
+        - id: recentreview-service
+          uri: lb://RECENTREVIEW-SERVICE
           predicates:
-            - Path=/catalog-service/**
+            - Path=/recentreview-service/**
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:

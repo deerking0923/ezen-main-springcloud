@@ -1,9 +1,9 @@
-package com.example.catalogservice.dto;
+package com.example.recentreviewservice.dto;
 
 import lombok.Data;
 
 @Data
-public class CatalogDto { // implements Serializable {
+public class ReviewDto { // implements Serializable {
     private String productId;
     private Integer qty;
     private Integer unitPrice;

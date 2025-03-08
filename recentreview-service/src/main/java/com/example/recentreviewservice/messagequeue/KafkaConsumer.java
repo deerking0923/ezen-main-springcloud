@@ -1,44 +1,39 @@
-package com.example.catalogservice.messagequeue;
+package com.example.recentreviewservice.messagequeue;
 
-import com.example.catalogservice.jpa.CatalogEntity;
-import com.example.catalogservice.jpa.CatalogRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.example.recentreviewservice.dto.Payload;
+import com.example.recentreviewservice.jpa.RecentReviewEntity;
+import com.example.recentreviewservice.jpa.RecentReviewRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@Service
 @Slf4j
+@Service
 public class KafkaConsumer {
-    CatalogRepository repository;
+    private final RecentReviewRepository repository;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    public KafkaConsumer(CatalogRepository repository) {
+    public KafkaConsumer(RecentReviewRepository repository) {
         this.repository = repository;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
     }
 
-    @KafkaListener(topics = "example-catalog-topic")
-    public void updateQty(String kafkaMessage) {
-        log.info("Kafka Message: ->" + kafkaMessage);
-
-        Map<Object, Object> map = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper();
+    @KafkaListener(topics = "review-topic", groupId = "recent-review-group")
+    public void consumeReview(String message) {
+        log.info("Received message: {}", message);
         try {
-            map = mapper.readValue(kafkaMessage, new TypeReference<Map<Object, Object>>() {});
-        } catch (JsonProcessingException ex) {
-            ex.printStackTrace();
-        }
-
-        CatalogEntity entity = repository.findByProductId((String)map.get("productId"));
-        if (entity != null) {
-            entity.setStock(entity.getStock() - (Integer)map.get("qty"));
+            Payload payload = objectMapper.readValue(message, Payload.class);
+            RecentReviewEntity entity = new RecentReviewEntity();
+            entity.setIsbn(payload.getIsbn());
+            entity.setUserId(payload.getUserId());
+            entity.setContent(payload.getContent());
+            entity.setCreateDate(payload.getCreateDate());
             repository.save(entity);
+        } catch (Exception e) {
+            log.error("Error processing Kafka message: ", e);
         }
     }
 }

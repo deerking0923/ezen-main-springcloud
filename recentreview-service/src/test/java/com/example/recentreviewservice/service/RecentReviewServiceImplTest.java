@@ -1,29 +1,47 @@
-package com.example.catalogservice.service;
+package com.example.recentreviewservice.service;
 
-import com.example.catalogservice.jpa.CatalogEntity;
+import com.example.recentreviewservice.jpa.RecentReviewEntity;
+import com.example.recentreviewservice.jpa.RecentReviewRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.Mockito;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-class CatalogServiceImplTest {
-    @Autowired
-    private CatalogService catalogService;
+import static org.junit.jupiter.api.Assertions.*;
+
+class RecentReviewServiceImplTest {
 
     @Test
-    void getAllCatalogs() {
-        Iterable<CatalogEntity> catalogEntities = catalogService.getAllCatalogs();
-
-        assertNotNull(catalogEntities);
-
-        catalogEntities.forEach(v -> {
-            assertTrue(v.getProductId().startsWith("CATALOG-"));
-        });
+    void testGetAllReviews() {
+        // 모의 객체(목) 생성
+        RecentReviewRepository repository = Mockito.mock(RecentReviewRepository.class);
+        
+        // 샘플 데이터 준비
+        RecentReviewEntity review1 = new RecentReviewEntity();
+        review1.setIsbn("9781234567890");
+        review1.setUserId("user1");
+        review1.setContent("리뷰 내용 1");
+        review1.setCreateDate(LocalDate.now());
+        
+        RecentReviewEntity review2 = new RecentReviewEntity();
+        review2.setIsbn("9781234567891");
+        review2.setUserId("user2");
+        review2.setContent("리뷰 내용 2");
+        review2.setCreateDate(LocalDate.now().minusDays(1));
+        
+        List<RecentReviewEntity> reviews = Arrays.asList(review1, review2);
+        Mockito.when(repository.findAll()).thenReturn(reviews);
+        
+        RecentReviewServiceImpl service = new RecentReviewServiceImpl(repository);
+        
+        Iterable<RecentReviewEntity> result = service.getAllReviews();
+        // 간단히 리뷰 개수가 예상과 같은지 확인
+        int count = 0;
+        for (RecentReviewEntity review : result) {
+            count++;
+        }
+        assertEquals(2, count);
     }
 }

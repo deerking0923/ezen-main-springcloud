@@ -1,7 +1,7 @@
-package com.example.catalogservice.service;
+package com.example.recentreviewservice.service;
 
-import com.example.catalogservice.jpa.CatalogEntity;
+import com.example.recentreviewservice.jpa.RecentReviewEntity;
 
-public interface CatalogService {
-    Iterable<CatalogEntity> getAllCatalogs();
+public interface RecentReviewService {
+    Iterable<RecentReviewEntity> getAllReviews();
 }

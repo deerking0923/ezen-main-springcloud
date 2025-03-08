@@ -4,7 +4,6 @@ import com.example.bookreviewservice.dto.BookReviewDto;
 import com.example.bookreviewservice.jpa.BookReviewEntity;
 import com.example.bookreviewservice.jpa.BookReviewRepository;
 import com.example.bookreviewservice.messagequeue.KafkaProducer;
-import com.example.bookreviewservice.messagequeue.BookReviewProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -20,14 +19,11 @@ public class BookReviewServiceImpl implements BookReviewService {
 
     private final BookReviewRepository bookReviewRepository;
     private final KafkaProducer kafkaProducer;
-    private final BookReviewProducer bookReviewProducer;
 
     public BookReviewServiceImpl(BookReviewRepository bookReviewRepository,
-                                 KafkaProducer kafkaProducer,
-                                 BookReviewProducer bookReviewProducer) {
+                                 KafkaProducer kafkaProducer) {
         this.bookReviewRepository = bookReviewRepository;
         this.kafkaProducer = kafkaProducer;
-        this.bookReviewProducer = bookReviewProducer;
     }
 
     @Override
@@ -40,9 +36,8 @@ public class BookReviewServiceImpl implements BookReviewService {
 
         BookReviewDto createdReview = mapper.map(entity, BookReviewDto.class);
 
-        // Kafka 전송
+        // Kafka 전송: review-topic 하나만 사용
         kafkaProducer.send("review-topic", createdReview);
-        bookReviewProducer.send("review-topic-struct", createdReview);
 
         return createdReview;
     }
@@ -64,7 +59,6 @@ public class BookReviewServiceImpl implements BookReviewService {
 
         // Kafka 전송 (수정 이벤트)
         kafkaProducer.send("review-topic", updatedReview);
-        bookReviewProducer.send("review-topic-struct-update", updatedReview);
 
         return updatedReview;
     }
@@ -84,8 +78,7 @@ public class BookReviewServiceImpl implements BookReviewService {
         BookReviewDto dto = new BookReviewDto();
         dto.setId(reviewId);
         dto.setUserId(userId);
-        kafkaProducer.send("review-topic-delete", dto);
-        bookReviewProducer.send("review-topic-struct-delete", dto);
+        kafkaProducer.send("review-topic", dto);
 
         return true;
     }

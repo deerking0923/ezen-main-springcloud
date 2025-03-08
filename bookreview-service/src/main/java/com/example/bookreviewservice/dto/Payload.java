@@ -1,6 +1,8 @@
 // src/main/java/com/example/booksearchservice/dto/Payload.java
 package com.example.bookreviewservice.dto;
 
+import java.time.LocalDate;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,4 +13,5 @@ public class Payload {
     private String isbn;
     private String user_id;
     private String content;
+    private LocalDate createDate;
 }
