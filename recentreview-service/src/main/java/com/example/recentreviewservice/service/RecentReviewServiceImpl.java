@@ -14,6 +14,7 @@ public class RecentReviewServiceImpl implements RecentReviewService {
 
     @Override
     public Iterable<RecentReviewEntity> getAllReviews() {
-        return reviewRepository.findAll();
+        // DB에서 최신 5개만 조회
+        return reviewRepository.findTop5ByOrderByIdDesc();
     }
 }

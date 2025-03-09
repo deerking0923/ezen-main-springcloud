@@ -38,12 +38,12 @@ public class RecentReviewController {
 
     @GetMapping("/reviews")
     public ResponseEntity<List<ResponseReview>> getReviews() {
+        // 서비스에서 최신 5개 리뷰만 반환하도록 처리됨
         Iterable<RecentReviewEntity> reviewEntities = recentReviewService.getAllReviews();
         List<ResponseReview> result = new ArrayList<>();
         ModelMapper mapper = new ModelMapper();
-        reviewEntities.forEach(entity -> {
-            result.add(mapper.map(entity, ResponseReview.class));
-        });
+        reviewEntities.forEach(entity -> result.add(mapper.map(entity, ResponseReview.class)));
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
+    
 }
