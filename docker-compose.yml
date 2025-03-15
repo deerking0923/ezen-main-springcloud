@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   config-service:
     image: realdeer/config-service:1.0
