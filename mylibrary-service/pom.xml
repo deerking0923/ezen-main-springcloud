@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>mylibrary-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>mylibrary-service</name>
 	<description>내 서재 관리 서비스입니다</description>
 	<url/>

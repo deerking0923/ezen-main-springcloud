@@ -1,0 +1,106 @@
+version: "3.8"
+services:
+  config-service:
+    image: realdeer/config-service:1.0
+    container_name: config-service
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.2
+
+  discovery-service:
+    image: realdeer/discovery-service:1.0
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.3
+
+  apigateway-service:
+    image: realdeer/apigateway-service:1.0
+    container_name: apigateway-service
+    ports:
+      - "8000:8000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.4
+
+  user-service:
+    image: realdeer/user-service:1.0
+    container_name: user-service
+    ports:
+      - "60000:60000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+      - logging.file=/api-logs/users-ws.log
+      - gateway.ip=172.18.0.4
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.5
+
+  bookreview-service:
+    image: realdeer/bookreview-service:1.0
+    container_name: bookreview-service
+    ports:
+      - "40000:40000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+      - logging.file=/api-logs/bookreview-ws.log
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.6
+
+  community-service:
+    image: realdeer/community-service:1.0
+    container_name: community-service
+    ports:
+      - "50000:50000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+      - logging.file=/api-logs/community-ws.log
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.7
+
+  mylibrary-service:
+    image: realdeer/mylibrary-service:1.0
+    container_name: mylibrary-service
+    ports:
+      - "30000:30000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+      - logging.file=/api-logs/mylibrary-ws.log
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.8
+
+  recentreview-service:
+    image: realdeer/recentreview-service:1.0
+    container_name: recentreview-service
+    ports:
+      - "20000:20000"
+    environment:
+      - spring.cloud.config.uri=http://config-service:8888
+      - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+      - logging.file=/api-logs/recentreview-ws.log
+    networks:
+      dadok-network:
+        ipv4_address: 172.18.0.9
+
+networks:
+  dadok-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
