@@ -63,8 +63,8 @@ management:
       exposure:
         include: "*"
 
-# gateway:
-#  ip: 10.204.136.204
+gateway:
+  ip: 172.18.0.4
 
 token:
   expiration_time: 86400000

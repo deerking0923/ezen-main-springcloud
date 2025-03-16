@@ -114,9 +114,10 @@ spring:
                 preLogger: true
                 postLogger: true
 
-#token:
-#  secret: user_token
 
+gateway:
+  ip: 172.18.0.4
+  
 management:
   endpoints:
     web:

@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   config-service:
     image: realdeer/config-service:1.0
@@ -6,6 +7,7 @@ services:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=default
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "ConfigServer.jar"]
     networks:
       dadok-network:
         ipv4_address: 172.18.0.2
@@ -15,6 +17,7 @@ services:
     container_name: discovery-service
     ports:
       - "8761:8761"
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "discovery-service.jar"]
     networks:
       dadok-network:
         ipv4_address: 172.18.0.3
@@ -27,6 +30,9 @@ services:
     environment:
       - spring.cloud.config.uri=http://config-service:8888
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "ApigatewayService.jar"]
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.4
@@ -41,6 +47,12 @@ services:
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
       - logging.file=/api-logs/users-ws.log
       - gateway.ip=172.18.0.4
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "user-service.jar"]
+    depends_on:
+      - config-service
+      - discovery-service
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.5
@@ -54,6 +66,9 @@ services:
       - spring.cloud.config.uri=http://config-service:8888
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
       - logging.file=/api-logs/bookreview-ws.log
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "bookreview-service.jar"]
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.6
@@ -67,6 +82,9 @@ services:
       - spring.cloud.config.uri=http://config-service:8888
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
       - logging.file=/api-logs/community-ws.log
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "community-service.jar"]
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.7
@@ -80,6 +98,9 @@ services:
       - spring.cloud.config.uri=http://config-service:8888
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
       - logging.file=/api-logs/mylibrary-ws.log
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "mylibrary-service.jar"]
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.8
@@ -93,6 +114,9 @@ services:
       - spring.cloud.config.uri=http://config-service:8888
       - eureka.client.serviceUrl.defaultZone=http://discovery-service:8761/eureka/
       - logging.file=/api-logs/recentreview-ws.log
+    command: ["java", "-Xmx128m", "-Xms128m", "-jar", "recentreview-service.jar"]
+    mem_limit: "256m"
+    mem_reservation: "128m"
     networks:
       dadok-network:
         ipv4_address: 172.18.0.9
