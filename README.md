@@ -1,4 +1,4 @@
-# 🚀 다독다독 — MSA 버전 (Backend)
+# 다독다독 — MSA 버전 (Backend)
 
 
 ## 프로젝트 소개
