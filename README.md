@@ -7,7 +7,7 @@ Spring Cloud API Gateway와 Eureka 기반의 독서 기록 서비스 마이크�
 ## 프로젝트 상태
 Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`) 라우팅 ✅, 로컬 환경에서 서비스 간 통신 확인 완료 ✅, 클라우드 배포는 메모리 제약으로 보류 중
 
-## 📖 아키텍처 및 서비스 목록
+## 아키텍처 및 서비스 목록
 | 서비스 | 설명 | 포트 |
 |---------|-------|------|
 | API Gateway (`api-gateway-service`) | 요청 라우팅 | 8000 |
@@ -19,7 +19,7 @@ Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`
 | Community Service (`community-service`) | 커뮤니티 게시판 | 50000 |
 | Config Service (`config-service`) | 중앙 설정 관리 (Spring Cloud Config) | 8888 |
 
-## 🛠 기술 스택
+## 기술 스택
 - Java 17, Spring Boot, Spring Cloud (Gateway, Eureka, Config)
 - MySQL
 - Docker Compose
