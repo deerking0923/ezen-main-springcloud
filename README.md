@@ -28,7 +28,7 @@ Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`
 ## 로컬 설치 및 실행
 1️⃣ 리포지토리 클론
 ```bash
-git clone https://github.com/username/ezen-main-springcloud.git
+git clone https://github.com/deerking0923/ezen-main-springcloud.git
 cd ezen-main-springcloud
 ```
 2️⃣ Docker Compose 실행
