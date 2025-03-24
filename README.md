@@ -1,7 +1,7 @@
 # 🚀 다독다독 — MSA 버전 (Backend)
 
 
-## 한 줄 소개
+## 프로젝트 소개
 Spring Cloud API Gateway와 Eureka 기반의 독서 기록 서비스 마이크로서비스 백엔드 (Proof-of-Concept)
 
 ## 프로젝트 상태
