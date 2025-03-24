@@ -31,12 +31,7 @@ Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`
 git clone https://github.com/username/ezen-main-springcloud.git
 cd ezen-main-springcloud
 ```
-2️⃣ 환경 변수 파일 생성 (`.env`)
-```dotenv
-MYSQL_ROOT_PASSWORD=your_password
-SPRING_PROFILES_ACTIVE=local
-```
-3️⃣ Docker Compose 실행
+2️⃣ Docker Compose 실행
 ```bash
 docker-compose up --build
 ```
