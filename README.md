@@ -5,7 +5,7 @@
 Spring Cloud API Gateway와 Eureka 기반의 독서 기록 서비스 마이크로서비스 백엔드 (Proof-of-Concept)
 
 ## 프로젝트 상태
-Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`) 라우팅 ✅, 로컬 환경에서 서비스 간 통신 확인 완료 ✅, 클라우드 배포는 메모리 제약으로 보류 중
+Proof-of-Concept: Eureka 서비스 등록, API Gateway(`api-gateway-service`) 라우팅, 로컬 환경에서 서비스 간 통신 확인 완료, 클라우드 배포는 메모리 제약으로 보류 중
 
 ## 아키텍처 및 서비스 목록
 | 서비스 | 설명 | 포트 |
@@ -23,20 +23,6 @@ Proof-of-Concept: Eureka 서비스 등록 ✅, API Gateway(`api-gateway-service`
 - Java 17, Spring Boot, Spring Cloud (Gateway, Eureka, Config)
 - MySQL
 - Docker Compose
-
-
-## 로컬 설치 및 실행
-1️⃣ 리포지토리 클론
-```bash
-git clone https://github.com/deerking0923/ezen-main-springcloud.git
-cd ezen-main-springcloud
-```
-2️⃣ Docker Compose 실행
-```bash
-docker-compose up --build
-```
-4️⃣ 서비스 확인
-- Eureka 대시보드: http://localhost:8761
 
 ## 학습 포인트
 - Spring Cloud API Gateway를 통한 요청 라우팅
